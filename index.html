@@ -253,11 +253,10 @@ html.loading,html.loading body{overflow:hidden}
   padding:24px max(16px,env(safe-area-inset-left,0px));transition:opacity .8s ease,visibility .8s,transform .8s ease}
 #loader.done{opacity:0;visibility:hidden;transform:scale(1.03)}
 #cv-load{width:min(900px,96vw);aspect-ratio:16/6;max-height:44vh}
-.ld-info{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:8px;width:min(380px,86vw)}
-.ld-row2{display:flex;align-items:center;gap:16px;width:100%}
+.ld-info{display:flex;align-items:center;gap:18px;margin-top:8px;max-width:92vw}
 .ld-code{font:500 .82rem var(--mono);letter-spacing:.22em;color:#2e3236;white-space:nowrap;overflow:hidden}
 .ld-code b{color:#fff;font-weight:500}
-.ld-row2 > b{font:500 .85rem var(--mono);color:#fff;font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
+.ld-info > b{font:500 .85rem var(--mono);color:#fff;font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
 .ld-brand{display:flex;align-items:center;justify-content:center;gap:10px;font:400 1.05rem var(--display);letter-spacing:-.01em}
 .ld-brand b{font-weight:700}
 .ld-steps{display:flex;justify-content:space-between;gap:10px;font:500 .7rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#4a525b}
@@ -281,7 +280,7 @@ html.loading,html.loading body{overflow:hidden}
 <div id="loader" role="status" aria-live="polite" aria-label="Loading: a file passes through The Blind Folder and comes out encrypted">
   <button id="ldSkip" type="button">Skip intro</button>
   <canvas id="cv-load" aria-hidden="true"></canvas>
-  <div class="ld-info"><span class="ld-code" id="ldCode" aria-hidden="true"></span><div class="ld-row2"><div class="ld-bar"><i id="ldBar"></i></div><b id="ldPct">0%</b></div></div>
+  <div class="ld-info"><span class="ld-code" id="ldCode" aria-hidden="true"></span><b id="ldPct">0%</b></div>
 </div>
 
 <header class="nav">
@@ -618,7 +617,7 @@ function heroIn(){ scramble($('h1a'),'Your documents are safe',900); setTimeout(
     // light sweep where the file crosses
     if(near>0){ const top=cy-ah/2+aw*.15, bot=cy+dh*.5+10; ctx.save(); ctx.shadowColor='rgba(255,255,255,.7)'; ctx.shadowBlur=10; ctx.fillStyle=`rgba(255,255,255,${near*.55})`; ctx.fillRect(cx-.75,top,1.5,bot-top); ctx.restore(); }
     // progress
-    const pct=Math.round(clamp(k/.92,0,1)*100); $('ldPct').textContent=pct+'%'; $('ldBar').style.width=pct+'%'; code(pct);
+    const pct=Math.round(clamp(k/.92,0,1)*100); $('ldPct').textContent=pct+'%'; code(pct);
     if(t>=DUR+.55) finish(); else requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

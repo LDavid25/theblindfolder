@@ -253,8 +253,11 @@ html.loading,html.loading body{overflow:hidden}
   padding:24px max(16px,env(safe-area-inset-left,0px));transition:opacity .8s ease,visibility .8s,transform .8s ease}
 #loader.done{opacity:0;visibility:hidden;transform:scale(1.03)}
 #cv-load{width:min(900px,96vw);aspect-ratio:16/6;max-height:44vh}
-.ld-info{width:min(360px,80vw);display:flex;align-items:center;gap:16px;margin-top:8px}
-.ld-info b{font:500 .85rem var(--mono);color:#c4cbd2;font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
+.ld-info{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:8px;width:min(380px,86vw)}
+.ld-row2{display:flex;align-items:center;gap:16px;width:100%}
+.ld-code{font:500 .82rem var(--mono);letter-spacing:.22em;color:#2e3236;white-space:nowrap;overflow:hidden}
+.ld-code b{color:#fff;font-weight:500}
+.ld-row2 > b{font:500 .85rem var(--mono);color:#fff;font-variant-numeric:tabular-nums;min-width:3.2em;text-align:right}
 .ld-brand{display:flex;align-items:center;justify-content:center;gap:10px;font:400 1.05rem var(--display);letter-spacing:-.01em}
 .ld-brand b{font-weight:700}
 .ld-steps{display:flex;justify-content:space-between;gap:10px;font:500 .7rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#4a525b}
@@ -266,7 +269,7 @@ html.loading,html.loading body{overflow:hidden}
 .ld-hex{font:400 .72rem var(--mono);color:#3f74c4;white-space:nowrap;overflow:hidden;min-width:0;flex:1;letter-spacing:.06em}
 .ld-row b{font:600 1.9rem/1 var(--display);font-variant-numeric:tabular-nums;color:#fff}
 .ld-bar{flex:1;height:2px;background:#16191d;overflow:hidden;border-radius:2px}
-.ld-bar i{display:block;height:100%;width:0;background:#7fd1c7;border-radius:2px}
+.ld-bar i{display:block;height:100%;width:0;background:#fff;border-radius:2px}
 #ldSkip{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));right:max(18px,env(safe-area-inset-right,0px));all:unset;cursor:pointer;font:500 .72rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#6b747c;padding:8px 12px;border:1px solid #23262a;border-radius:4px}
 #ldSkip{position:absolute;top:18px;right:18px}
 #ldSkip:hover,#ldSkip:focus-visible{color:#fff;border-color:#5b6166}
@@ -278,7 +281,7 @@ html.loading,html.loading body{overflow:hidden}
 <div id="loader" role="status" aria-live="polite" aria-label="Loading: a file passes through The Blind Folder and comes out encrypted">
   <button id="ldSkip" type="button">Skip intro</button>
   <canvas id="cv-load" aria-hidden="true"></canvas>
-  <div class="ld-info"><div class="ld-bar"><i id="ldBar"></i></div><b id="ldPct">0%</b></div>
+  <div class="ld-info"><span class="ld-code" id="ldCode" aria-hidden="true"></span><div class="ld-row2"><div class="ld-bar"><i id="ldBar"></i></div><b id="ldPct">0%</b></div></div>
 </div>
 
 <header class="nav">
@@ -575,7 +578,16 @@ function heroIn(){ scramble($('h1a'),'Your documents are safe',900); setTimeout(
 (function(){
   const L=$('loader'); if(!L){ heroIn(); return; }
   const cv=$('cv-load'), ctx=cv.getContext('2d'); let W=1,H=1, ended=false;
-  const AC='#7fd1c7';
+  const AC='#ffffff';
+  const LOGO=[['M0 10a10 10 0 0 1 10-10h28a10 10 0 0 1 10 10v28a10 10 0 0 1-10 10H10A10 10 0 0 1 0 38z','#fff','fill'],['M18 12h17v21','#5b6770','stroke',3],['M9 16h9l3 3h11v16H9z','#000','fill'],['M12 27c4-5 12-5 17 0-5 5-13 5-17 0z','#fff','stroke',2]].map(q=>[new Path2D(q[0]),q[1],q[2],q[3]]);
+  function logo(x,y,size,a){ ctx.save(); ctx.globalAlpha=a; ctx.translate(x-size/2,y-size/2); ctx.scale(size/48,size/48); LOGO.forEach(([pth,col,mode,lw])=>{ if(mode==='fill'){ ctx.fillStyle=col; ctx.fill(pth); } else { ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.stroke(pth); } }); ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(20.5,27,2.7,0,7); ctx.fill(); ctx.restore(); }
+  const N=21, GOAL='ENCRYPTED · VIEW ONLY', GLY='ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#$%&@';
+  let decodeAt=0;
+  function code(pct){ const filled=Math.round(pct/100*N); let h='';
+    if(pct>=100){ if(!decodeAt) decodeAt=performance.now(); const d=clamp((performance.now()-decodeAt)/450,0,1), upto=Math.floor(d*N);
+      for(let i=0;i<N;i++){ const c=i<upto?GOAL[i]:GLY[(Math.random()*GLY.length)|0]; h+='<b>'+(c===' '?'&nbsp;':c)+'</b>'; } }
+    else { for(let i=0;i<N;i++) h+=i<filled?'<b>'+GLY[(Math.random()*GLY.length)|0]+'</b>':'·'; }
+    $('ldCode').innerHTML=h; }
   function size(){ const r=cv.getBoundingClientRect(); W=r.width; H=r.height; cv.width=Math.max(1,Math.round(W*DPR)); cv.height=Math.max(1,Math.round(H*DPR)); ctx.setTransform(DPR,0,0,DPR,0,0); }
   size(); addEventListener('resize',size);
   const DUR=reduce?1:4.2, t0=performance.now();
@@ -594,19 +606,20 @@ function heroIn(){ scramble($('h1a'),'Your documents are safe',900); setTimeout(
     const x=lerp(W*.2,W*.8,u), fadeIn=clamp(k/.12,0,1), fadeOut=1-clamp((k-.9)/.1,0,1), a=fadeIn*fadeOut;
     const near=clamp(1-Math.abs(x-cx)/(aw*1.2),0,1);
     // arch (back half)
-    ctx.save(); ctx.shadowColor=AC; ctx.shadowBlur=6+near*18; ctx.strokeStyle=`rgba(127,209,199,${.45+near*.5})`; ctx.lineWidth=1.5;
+    ctx.save(); ctx.shadowColor='rgba(255,255,255,.6)'; ctx.shadowBlur=4+near*14; ctx.strokeStyle=`rgba(255,255,255,${.3+near*.55})`; ctx.lineWidth=1.5;
     ctx.beginPath(); ctx.moveTo(cx-aw/2,cy+dh*.5+10); ctx.lineTo(cx-aw/2,cy-ah/2+aw/2); ctx.arc(cx,cy-ah/2+aw/2,aw/2,Math.PI,0); ctx.lineTo(cx+aw/2,cy+dh*.5+10); ctx.stroke(); ctx.restore();
+    logo(cx,cy-ah/2-aw*.32,Math.max(20,aw*.42),.75+near*.25);
     // the file: readable on the left of the arch, encrypted on the right
     ctx.save(); ctx.globalAlpha=a;
     ctx.save(); ctx.beginPath(); ctx.rect(0,0,cx,H); ctx.clip(); paper(x,cy,dw,dh,'#f4f6f9','#c9d0d7'); lines(x,cy,dw,dh,'#9aa3ab',false); ctx.fillStyle='#5b95e6'; ctx.fillRect(x-dw*.3,cy-dh*.18-1,dw*.4,2.4); ctx.restore();
-    ctx.save(); ctx.beginPath(); ctx.rect(cx,0,W-cx,H); ctx.clip(); ctx.shadowColor=AC; ctx.shadowBlur=12; paper(x,cy,dw,dh,'#0d1722',AC); ctx.shadowBlur=0; lines(x,cy,dw,dh,'rgba(127,209,199,.75)',true); ctx.restore();
-    if(x>cx+dw*.6) lock(x,cy+dh*.28,dw*.26,clamp((x-cx-dw*.6)/(dw*1.2),0,1));
+    ctx.save(); ctx.beginPath(); ctx.rect(cx,0,W-cx,H); ctx.clip(); ctx.shadowColor='rgba(255,255,255,.35)'; ctx.shadowBlur=10; paper(x,cy,dw,dh,'#0b0c0e','rgba(255,255,255,.75)'); ctx.shadowBlur=0; lines(x,cy,dw,dh,'rgba(255,255,255,.6)',true); ctx.restore();
+    if(x>cx+dw*.6) lock(x,cy+dh*.28,dw*.26,a*clamp((x-cx-dw*.6)/(dw*1.2),0,1));
     ctx.restore();
     // light sweep where the file crosses
-    if(near>0){ const top=cy-ah/2+aw*.15, bot=cy+dh*.5+10; ctx.save(); ctx.shadowColor=AC; ctx.shadowBlur=10; ctx.fillStyle=`rgba(127,209,199,${near*.6})`; ctx.fillRect(cx-.75,top,1.5,bot-top); ctx.restore(); }
+    if(near>0){ const top=cy-ah/2+aw*.15, bot=cy+dh*.5+10; ctx.save(); ctx.shadowColor='rgba(255,255,255,.7)'; ctx.shadowBlur=10; ctx.fillStyle=`rgba(255,255,255,${near*.55})`; ctx.fillRect(cx-.75,top,1.5,bot-top); ctx.restore(); }
     // progress
-    const pct=Math.round(clamp(k/.92,0,1)*100); $('ldPct').textContent=pct+'%'; $('ldBar').style.width=pct+'%';
-    if(t>=DUR+.35) finish(); else requestAnimationFrame(frame);
+    const pct=Math.round(clamp(k/.92,0,1)*100); $('ldPct').textContent=pct+'%'; $('ldBar').style.width=pct+'%'; code(pct);
+    if(t>=DUR+.55) finish(); else requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
 })();
